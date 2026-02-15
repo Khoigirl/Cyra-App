@@ -1,8 +1,14 @@
 
 import React from 'react';
+import { View, Text, ScrollView } from 'react-native';
+import { styled } from 'nativewind';
 import Screen from '../Screen';
 import ProgressHeader from './ProgressHeader';
 import Button from '../Button';
+
+const StyledView = styled(View);
+const StyledText = styled(Text);
+const StyledScrollView = styled(ScrollView);
 
 interface OnboardingLayoutProps {
   title: string;
@@ -16,47 +22,34 @@ interface OnboardingLayoutProps {
 }
 
 const OnboardingLayout: React.FC<OnboardingLayoutProps> = ({
-  title,
-  subtitle,
-  children,
-  onNext,
-  onBack,
-  currentStep,
-  totalSteps,
-  isNextDisabled = false,
+  title, subtitle, children, onNext, onBack, currentStep, totalSteps, isNextDisabled = false,
 }) => {
   return (
-    <Screen scrollable={false}>
-      <div className="flex flex-col h-full pb-8">
+    <Screen scrollable={false} className="px-0">
+      <StyledView className="flex-1 pb-8">
         <ProgressHeader currentStep={currentStep} totalSteps={totalSteps} />
         
-        <div className="flex-1 mt-4 px-2 overflow-y-auto hide-scrollbar">
-          <h2 className="text-2xl font-bold text-[#1F2937] mb-2">{title}</h2>
-          <p className="text-[#6B7280] text-sm leading-relaxed mb-6">{subtitle}</p>
+        <StyledView className="flex-1 mt-6 px-6">
+          <StyledText className="text-2xl font-bold text-[#1F2937] mb-2">{title}</StyledText>
+          <StyledText className="text-[#6B7280] text-sm leading-relaxed mb-8">{subtitle}</StyledText>
           
-          <div className="pb-8">
+          <StyledScrollView showsVerticalScrollIndicator={false} className="flex-1">
             {children}
-          </div>
-        </div>
+          </StyledScrollView>
+        </StyledView>
 
-        <div className="pt-4 px-2 space-y-3">
-          <Button 
-            label="Continue" 
-            onPress={onNext} 
-            className={`w-full shadow-md ${isNextDisabled ? 'opacity-50 pointer-events-none' : ''}`}
-          />
+        <StyledView className="pt-4 px-6 gap-y-3">
+          <Button label="Continue" onPress={onNext} className={`w-full ${isNextDisabled ? 'opacity-30' : 'opacity-100'}`} />
           {onBack && (
-            <Button 
-              label="Back" 
-              variant="tertiary" 
-              onPress={onBack} 
-              className="w-full text-xs font-semibold py-2"
-            />
+            <StyledPressable onPress={onBack} className="w-full py-2 items-center">
+              <StyledText className="text-xs font-bold text-gray-400 uppercase tracking-widest">Back</StyledText>
+            </StyledPressable>
           )}
-        </div>
-      </div>
+        </StyledView>
+      </StyledView>
     </Screen>
   );
 };
 
+const StyledPressable = styled(View); // Placeholder for internal use
 export default OnboardingLayout;

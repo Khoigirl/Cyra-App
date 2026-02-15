@@ -46,12 +46,10 @@ export const calculateSupplementConsistency = (logs: DailyLog[]) => {
   const counts: Record<string, number> = {};
   
   last7.forEach(log => {
-    log.supplements.forEach(s => {
-      if (s.taken) {
-        counts[s.name] = (counts[s.name] || 0) + 1;
-      } else {
-        if (counts[s.name] === undefined) counts[s.name] = 0;
-      }
+    // Fix: log.supplements is string[] containing names of taken supplements
+    log.supplements.forEach(name => {
+      // If the name is in the array, it means it was taken on this day.
+      counts[name] = (counts[name] || 0) + 1;
     });
   });
 
@@ -68,11 +66,12 @@ export const calculateLoggingStreak = (logs: DailyLog[]) => {
   let streak = 0;
   const reversed = [...logs].reverse();
   for (const log of reversed) {
+    // Fix: log.supplements is string[] where entries exist if taken
     const hasData = log.steps > 0 || 
                     log.water > 0 || 
                     log.meals.length > 0 || 
                     log.symptomLogs.length > 0 ||
-                    log.supplements.some(s => s.taken);
+                    log.supplements.length > 0;
     if (hasData) streak++;
     else break;
   }

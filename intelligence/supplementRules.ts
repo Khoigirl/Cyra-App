@@ -22,7 +22,9 @@ function countSymptomDays(
 function countSupplementDays(logs: DailyLog[], supplementName: string, windowDays = 7) {
   const recent = logs.slice(-windowDays);
   return recent.filter((day) =>
-    (day.supplements ?? []).some((s) => norm(s.name) === norm(supplementName) && s.taken)
+    // Fix: day.supplements is string[] containing names of taken supplements.
+    // Existence in the array implies the supplement was taken.
+    (day.supplements ?? []).some((s) => norm(s) === norm(supplementName))
   ).length;
 }
 
@@ -30,7 +32,8 @@ function hasEnoughLogs(logs: DailyLog[], minDays = 4, windowDays = 7) {
   const recent = logs.slice(-windowDays);
   // counts days where user logged anything (symptoms or supplements)
   const loggedDays = recent.filter(
-    (d) => (d.symptomLogs && d.symptomLogs.length > 0) || (d.supplements && d.supplements.some(s => s.taken))
+    // Fix: d.supplements is string[] - length > 0 means something was taken.
+    (d) => (d.symptomLogs && d.symptomLogs.length > 0) || (d.supplements && d.supplements.length > 0)
   ).length;
   return loggedDays >= minDays;
 }

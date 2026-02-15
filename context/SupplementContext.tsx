@@ -1,6 +1,7 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { Supplement, SupplementReminder, SupplementIntakeLog, SupplementForm, ColorKey } from '../supplementTypes';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Supplement, SupplementReminder, SupplementIntakeLog } from '../supplementTypes';
 
 interface SupplementContextType {
   supplements: Supplement[];
@@ -24,7 +25,6 @@ const DEFAULT_SUPPS: Omit<Supplement, 'id' | 'createdAt' | 'updatedAt'>[] = [
   { name: 'Magnesium', form: 'capsule', defaultDoseText: '400mg', colorKey: 'lavender', isActive: true },
   { name: 'Omega-3', form: 'capsule', defaultDoseText: '1000mg', colorKey: 'blue', isActive: true },
   { name: 'Vitamin D', form: 'capsule', defaultDoseText: '2000IU', colorKey: 'rose', isActive: true },
-  { name: 'Spearmint Tea', form: 'tea', defaultDoseText: '1 cup', colorKey: 'neutral', isActive: true },
 ];
 
 export const SupplementProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
@@ -32,49 +32,46 @@ export const SupplementProvider: React.FC<{ children: ReactNode }> = ({ children
   const [reminders, setReminders] = useState<SupplementReminder[]>([]);
   const [logs, setLogs] = useState<Record<string, SupplementIntakeLog>>({});
 
-  // Hydrate from Storage
   useEffect(() => {
-    const savedSupps = localStorage.getItem('cyra_supplements');
-    const savedReminders = localStorage.getItem('cyra_reminders');
-    const savedLogs = localStorage.getItem('cyra_logs');
+    const hydrate = async () => {
+      try {
+        const savedSupps = await AsyncStorage.getItem('cyra_supplements');
+        const savedReminders = await AsyncStorage.getItem('cyra_reminders');
+        const savedLogs = await AsyncStorage.getItem('cyra_logs');
 
-    if (savedSupps) {
-      setSupplements(JSON.parse(savedSupps));
-    } else {
-      // Seed defaults
-      const seeded = DEFAULT_SUPPS.map(s => ({
-        ...s,
-        id: Math.random().toString(36).substr(2, 9),
-        createdAt: Date.now(),
-        updatedAt: Date.now()
-      }));
-      setSupplements(seeded);
-    }
-
-    if (savedReminders) setReminders(JSON.parse(savedReminders));
-    if (savedLogs) setLogs(JSON.parse(savedLogs));
+        if (savedSupps) setSupplements(JSON.parse(savedSupps));
+        else {
+          const seeded = DEFAULT_SUPPS.map(s => ({
+            ...s,
+            id: Math.random().toString(36).substr(2, 9),
+            createdAt: Date.now(),
+            updatedAt: Date.now()
+          }));
+          setSupplements(seeded);
+        }
+        if (savedReminders) setReminders(JSON.parse(savedReminders));
+        if (savedLogs) setLogs(JSON.parse(savedLogs));
+      } catch (e) {
+        console.error("Hydration error", e);
+      }
+    };
+    hydrate();
   }, []);
 
-  // Persistence
   useEffect(() => {
-    if (supplements.length > 0) localStorage.setItem('cyra_supplements', JSON.stringify(supplements));
+    if (supplements.length > 0) AsyncStorage.setItem('cyra_supplements', JSON.stringify(supplements));
   }, [supplements]);
 
   useEffect(() => {
-    localStorage.setItem('cyra_reminders', JSON.stringify(reminders));
+    AsyncStorage.setItem('cyra_reminders', JSON.stringify(reminders));
   }, [reminders]);
 
   useEffect(() => {
-    localStorage.setItem('cyra_logs', JSON.stringify(logs));
+    AsyncStorage.setItem('cyra_logs', JSON.stringify(logs));
   }, [logs]);
 
   const addSupplement = (sup: Omit<Supplement, 'id' | 'createdAt' | 'updatedAt'>) => {
-    const newSup: Supplement = {
-      ...sup,
-      id: Math.random().toString(36).substr(2, 9),
-      createdAt: Date.now(),
-      updatedAt: Date.now()
-    };
+    const newSup: Supplement = { ...sup, id: Math.random().toString(36).substr(2, 9), createdAt: Date.now(), updatedAt: Date.now() };
     setSupplements(prev => [...prev, newSup]);
   };
 
@@ -103,12 +100,7 @@ export const SupplementProvider: React.FC<{ children: ReactNode }> = ({ children
   };
 
   const addReminder = (rem: Omit<SupplementReminder, 'id' | 'createdAt' | 'updatedAt'>) => {
-    const newRem: SupplementReminder = {
-      ...rem,
-      id: Math.random().toString(36).substr(2, 9),
-      createdAt: Date.now(),
-      updatedAt: Date.now()
-    };
+    const newRem: SupplementReminder = { ...rem, id: Math.random().toString(36).substr(2, 9), createdAt: Date.now(), updatedAt: Date.now() };
     setReminders(prev => [...prev, newRem]);
   };
 
@@ -126,18 +118,14 @@ export const SupplementProvider: React.FC<{ children: ReactNode }> = ({ children
       d.setDate(d.getDate() - i);
       return d.toISOString().split('T')[0];
     });
-
     const weeklyConsistency = last7Days.filter(d => logs[d]?.taken[supplementId]?.checked).length;
-    
-    // Streak calculation (simple implementation)
     let currentStreak = 0;
     const sortedDates = Object.keys(logs).sort().reverse();
     for (const d of sortedDates) {
       if (logs[d]?.taken[supplementId]?.checked) currentStreak++;
       else break;
     }
-
-    return { weeklyConsistency, currentStreak, bestStreak: currentStreak }; // Best streak mock
+    return { weeklyConsistency, currentStreak, bestStreak: currentStreak };
   };
 
   const getCompletionForDate = (date: string) => {
@@ -148,10 +136,8 @@ export const SupplementProvider: React.FC<{ children: ReactNode }> = ({ children
 
   return (
     <SupplementContext.Provider value={{
-      supplements, reminders, logs,
-      addSupplement, updateSupplement, toggleSupplementActive,
-      setTaken, addReminder, updateReminder, deleteReminder,
-      getStats, getCompletionForDate
+      supplements, reminders, logs, addSupplement, updateSupplement, toggleSupplementActive,
+      setTaken, addReminder, updateReminder, deleteReminder, getStats, getCompletionForDate
     }}>
       {children}
     </SupplementContext.Provider>
@@ -160,6 +146,6 @@ export const SupplementProvider: React.FC<{ children: ReactNode }> = ({ children
 
 export const useSupplements = () => {
   const context = useContext(SupplementContext);
-  if (!context) throw new Error('useSupplements must be used within SupplementProvider');
+  if (!context) throw new Error('useSupplements error');
   return context;
 };
