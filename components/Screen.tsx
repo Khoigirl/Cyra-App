@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { View, ScrollView, Text } from 'react-native';
+import { View, ScrollView, Text, Platform } from 'react-native';
 import { styled } from 'nativewind';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -26,10 +26,10 @@ const Screen: React.FC<ScreenProps> = ({
   hideHeader = false 
 }) => {
   const content = (
-    <StyledView className={`flex-1 px-6 pb-10 ${className}`}>
+    <StyledView className={`flex-1 px-5 pb-24 ${className}`}>
       {title && !hideHeader && (
-        <StyledView className="pt-4 mb-6">
-          <StyledText className="text-3xl font-bold text-[#1F2937]">{title}</StyledText>
+        <StyledView className="pt-6 mb-6">
+          <StyledText className="text-3xl font-bold text-[#1F2937] tracking-tight">{title}</StyledText>
         </StyledView>
       )}
       {children}
@@ -37,7 +37,7 @@ const Screen: React.FC<ScreenProps> = ({
   );
 
   return (
-    <StyledSafeAreaView className="flex-1 bg-[#FBFBF9]" edges={['top', 'left', 'right']}>
+    <StyledView className="flex-1 bg-[#FBFBF9]">
       {scrollable ? (
         <StyledScrollView 
           className="flex-1" 
@@ -49,7 +49,7 @@ const Screen: React.FC<ScreenProps> = ({
       ) : (
         content
       )}
-    </StyledSafeAreaView>
+    </StyledView>
   );
 };
 

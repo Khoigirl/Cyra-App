@@ -1,77 +1,142 @@
 
-import React from 'react';
-import { View, Text, Pressable, Image } from 'react-native';
+import React, { useMemo } from 'react';
+import { View, Text, ScrollView } from 'react-native';
 import { styled } from 'nativewind';
 import Screen from '../components/Screen';
 import Card from '../components/Card';
 import Button from '../components/Button';
+import PhaseChip from '../components/PhaseChip';
+import { useWellness } from '../context/WellnessContext';
+import { useSupplements } from '../context/SupplementContext';
+import { generateIntelligence } from '../intelligence/engine';
+import { useOnboarding } from '../context/OnboardingContext';
 
 const StyledView = styled(View);
 const StyledText = styled(Text);
 
 const Today: React.FC = () => {
+  const { logs, getCycleInfo, lastPeriodStart, cycleLength } = useWellness();
+  const { getCompletionForDate } = useSupplements();
+  const { answers } = useOnboarding();
+
+  const todayStr = new Date().toISOString().split('T')[0];
+  const activeLog = logs[todayStr] || { steps: 0, water: 0, meals: [], symptomLogs: [], supplements: [] };
+  const cycleInfo = getCycleInfo(todayStr);
+  const completion = getCompletionForDate(todayStr);
+
+  const intelligence = useMemo(() => generateIntelligence({
+    profile: answers,
+    todayLog: activeLog as any,
+    recentLogs: Object.values(logs),
+    cycleInfo,
+    cycleConfig: { lastPeriodStart, cycleLength, regularity: answers.periodRegularity || 'Regular' }
+  }), [activeLog, logs, cycleInfo, answers]);
+
   return (
     <Screen>
-      <StyledView className="mt-4 mb-8">
-        <StyledText className="text-[10px] font-bold text-[#8FAF9D] uppercase tracking-[0.25em]">Wednesday, Feb 14</StyledText>
-        <StyledText className="text-4xl font-bold text-[#1F2937] mt-1">Hello, Emma</StyledText>
+      <StyledView className="mt-4 mb-8 px-1">
+        <StyledText className="text-[10px] font-bold text-[#8FAF9D] uppercase tracking-[0.25em]">
+          {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
+        </StyledText>
+        <StyledText className="text-4xl font-bold text-[#1F2937] mt-1 tracking-tight">Today's Rhythm</StyledText>
       </StyledView>
 
-      <Card className="bg-[#8FA899]/10 border-none mb-8">
+      {/* Intelligence Briefing */}
+      <Card className="bg-[#8FA899]/10 border-none mb-8 p-6">
         <StyledView className="flex-row justify-between items-start mb-4">
           <StyledView>
-            <StyledText className="text-[9px] font-bold text-[#6B7280] uppercase tracking-widest">Current Phase</StyledText>
-            <StyledText className="text-2xl font-bold text-[#4A5D4E] mt-1">Follicular</StyledText>
+            <StyledText className="text-[9px] font-bold text-[#6B7280] uppercase tracking-widest">{intelligence.briefing.title}</StyledText>
+            <StyledText className="text-2xl font-bold text-[#4A5D4E] mt-1">{cycleInfo.phase}</StyledText>
           </StyledView>
-          <StyledView className="bg-[#8FA899] px-3 py-1 rounded-full">
-            <StyledText className="text-[9px] font-bold text-white uppercase">Day 12</StyledText>
-          </StyledView>
+          <PhaseChip phase={cycleInfo.phase} />
         </StyledView>
-        <StyledText className="text-sm text-[#4A5D4E] leading-relaxed font-medium">
-          Your estrogen is peaking. Energy levels are likely rising—a great window for creative focus and movement.
-        </StyledText>
-        <StyledView className="flex-row gap-3 mt-6">
-          <Button label="Log Detail" className="flex-1 h-12" />
-          <Button label="Education" variant="secondary" className="flex-1 h-12" />
+        
+        <StyledView className="space-y-3">
+          {intelligence.briefing.bullets.map((bullet, i) => (
+            <StyledView key={i} className="flex-row items-start pr-4">
+              <StyledText className="text-[#4A5D4E] text-sm mr-2">•</StyledText>
+              <StyledText className="text-sm text-[#4A5D4E] leading-relaxed font-medium">
+                {bullet}
+              </StyledText>
+            </StyledView>
+          ))}
+        </StyledView>
+
+        <StyledView className="flex-row gap-3 mt-8">
+          <Button label="Log Detail" className="flex-1 h-12 rounded-2xl" />
+          <Button label="Trends" variant="secondary" className="flex-1 h-12 rounded-2xl" />
         </StyledView>
       </Card>
 
+      {/* Real-time Momentum */}
       <StyledView className="mb-10">
-        <StyledText className="text-[11px] font-bold text-[#6B7280] uppercase tracking-widest mb-4">Daily Momentum</StyledText>
+        <StyledText className="text-[11px] font-bold text-[#6B7280] uppercase tracking-widest mb-4 px-1">Live Momentum</StyledText>
         <StyledView className="flex-row flex-wrap justify-between">
-          <MomentumCard icon="💧" label="Hydration" value="1.2L" target="/ 2.0L" />
-          <MomentumCard icon="🥗" label="Nutrition" value="1,450" target="kcal" />
-          <MomentumCard icon="👟" label="Activity" value="6,432" target="steps" />
-          <MomentumCard icon="✨" label="Wellness" value="2" target="logged" />
+          <MomentumCard 
+            icon="💧" 
+            label="Hydration" 
+            value={`${activeLog.water}L`} 
+            target="/ 2.0L" 
+            progress={activeLog.water / 2}
+          />
+          <MomentumCard 
+            icon="🌿" 
+            label="Ritual" 
+            value={`${completion.taken}/${completion.total}`} 
+            target="taken" 
+            progress={completion.total > 0 ? completion.taken / completion.total : 0}
+          />
+          <MomentumCard 
+            icon="👟" 
+            label="Activity" 
+            value={activeLog.steps.toLocaleString()} 
+            target="steps" 
+            progress={activeLog.steps / 10000}
+          />
+          <MomentumCard 
+            icon="✨" 
+            label="Check-in" 
+            value={activeLog.symptomLogs.length.toString()} 
+            target="logged" 
+            progress={activeLog.symptomLogs.length > 0 ? 1 : 0}
+          />
         </StyledView>
       </StyledView>
 
-      <Card className="flex-row items-center justify-between mb-20">
-        <StyledView className="flex-row items-center">
-          <StyledView className="w-12 h-12 bg-[#DDEEF4] rounded-2xl items-center justify-center mr-4">
-            <StyledText className="text-xl">🌿</StyledText>
-          </StyledView>
-          <StyledView>
-            <StyledText className="font-bold text-[#1F2937]">Supplement Ritual</StyledText>
-            <StyledText className="text-[10px] text-[#6B7280] font-medium mt-0.5">3 of 5 habits completed today</StyledText>
-          </StyledView>
-        </StyledView>
-        <StyledText className="text-gray-300">❯</StyledText>
-      </Card>
+      {/* Recommendations Feed */}
+      {intelligence.recommendations.map(rec => (
+        <Card key={rec.id} className="mb-4 p-5 flex-row items-center gap-4">
+           <StyledView className="w-12 h-12 rounded-2xl bg-[#DDEEF4] items-center justify-center">
+              <StyledText className="text-xl">
+                {rec.category === 'food' ? '🥗' : rec.category === 'exercise' ? '💪' : '✨'}
+              </StyledText>
+           </StyledView>
+           <StyledView className="flex-1">
+              <StyledText className="text-[9px] font-bold text-[#8FAF9D] uppercase tracking-widest">{rec.title}</StyledText>
+              <StyledText className="text-xs text-[#6B7280] font-medium leading-tight mt-1">{rec.action}</StyledText>
+           </StyledView>
+        </Card>
+      ))}
+
+      <StyledView className="h-10" />
     </Screen>
   );
 };
 
-const MomentumCard = ({ icon, label, value, target }: any) => (
-  <Card className="p-4 w-[48%] mb-4 h-32 justify-between">
-    <StyledView className="flex-row justify-between">
+const MomentumCard = ({ icon, label, value, target, progress }: any) => (
+  <Card className="p-4 w-[48%] mb-4 h-32 justify-between overflow-hidden">
+    <StyledView className="flex-row justify-between relative z-10">
       <StyledText className="text-xl">{icon}</StyledText>
       <StyledText className="text-[8px] font-bold text-gray-400 uppercase">{label}</StyledText>
     </StyledView>
-    <StyledView>
+    <StyledView className="relative z-10">
       <StyledText className="text-lg font-bold text-[#1F2937]">{value}</StyledText>
       <StyledText className="text-[9px] text-gray-400 font-medium">{target}</StyledText>
     </StyledView>
+    <StyledView 
+      className="absolute bottom-0 left-0 h-1 bg-[#8FAF9D]/20" 
+      style={{ width: `${Math.min(progress * 100, 100)}%` }} 
+    />
   </Card>
 );
 

@@ -1,26 +1,20 @@
 
 {
-  "name": "cyra-ios-wrapper",
-  "version": "1.0.0",
-  "main": "native-main.tsx",
-  "scripts": {
-    "start": "expo start",
-    "ios": "expo run:ios",
-    "android": "expo run:android",
-    "web": "expo start --web"
-  },
+  "name": "cyra-ios-native",
+  "version": "1.2.0",
+  "main": "index.tsx",
   "dependencies": {
     "expo": "~50.0.0",
     "expo-status-bar": "~1.11.1",
     "expo-constants": "~15.4.5",
     "expo-haptics": "~12.8.1",
+    "expo-camera": "~14.0.0",
     "react": "18.2.0",
     "react-native": "0.73.4",
     "react-native-webview": "13.6.4",
-    "react-native-safe-area-context": "4.8.2"
-  },
-  "devDependencies": {
-    "@types/react": "~18.2.45",
-    "typescript": "^5.3.3"
+    "react-native-safe-area-context": "4.8.2",
+    "nativewind": "^4.0.1",
+    "tailwindcss": "^3.4.1",
+    "@google/genai": "^1.41.0"
   }
 }

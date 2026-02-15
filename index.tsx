@@ -5,8 +5,9 @@ import App from './App';
 AppRegistry.registerComponent('main', () => App);
 
 if (Platform.OS === 'web') {
+  const rootTag = document.getElementById('root') || document.getElementById('main');
   AppRegistry.runApplication('main', {
     initialProps: {},
-    rootTag: document.getElementById('root'),
+    rootTag: rootTag,
   });
 }
