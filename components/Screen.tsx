@@ -1,42 +1,55 @@
 
 import React from 'react';
-import CyraLogo from './CyraLogo';
+import { View, ScrollView, Text } from 'react-native';
+import { styled } from 'nativewind';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
+const StyledSafeAreaView = styled(SafeAreaView);
+const StyledScrollView = styled(ScrollView);
+const StyledView = styled(View);
+const StyledText = styled(Text);
 
 interface ScreenProps {
   children: React.ReactNode;
-  title?: string;
   scrollable?: boolean;
+  className?: string;
+  title?: string;
   hideHeader?: boolean;
-  hideLogo?: boolean;
   hasTabBar?: boolean;
 }
 
 const Screen: React.FC<ScreenProps> = ({ 
   children, 
-  title, 
   scrollable = true, 
-  hideHeader = false,
-  hideLogo = false,
-  hasTabBar = false 
+  className = "", 
+  title, 
+  hideHeader = false 
 }) => {
-  return (
-    <div className={`flex flex-col h-full bg-[#FBFBF9] ${scrollable ? 'overflow-y-auto' : 'overflow-hidden'} hide-scrollbar`}>
-      <div style={{ paddingTop: 'var(--sat)' }} />
-      
-      {!hideHeader && (
-        <header className="px-8 py-5 bg-[#FBFBF9]/80 backdrop-blur-md sticky top-0 z-30 flex justify-between items-center border-b border-[#F0EFEA]/50">
-          {!hideLogo ? <CyraLogo size={20} /> : <div className="w-5" />}
-          {title && <h1 className="text-[10px] font-bold text-[#3A3A3A] uppercase tracking-[0.25em]">{title}</h1>}
-          <div className="w-5" />
-        </header>
+  const content = (
+    <StyledView className={`flex-1 px-6 pb-10 ${className}`}>
+      {title && !hideHeader && (
+        <StyledView className="pt-4 mb-6">
+          <StyledText className="text-3xl font-bold text-[#1F2937]">{title}</StyledText>
+        </StyledView>
       )}
-      
-      <div className={`flex-1 flex flex-col px-8 ${hasTabBar ? 'pb-32' : 'pb-12'}`}>
-        {children}
-      </div>
+      {children}
+    </StyledView>
+  );
 
-      {!hasTabBar && <div style={{ height: 'var(--sab)' }} />}
-    </div>
+  return (
+    <StyledSafeAreaView className="flex-1 bg-[#FBFBF9]" edges={['top', 'left', 'right']}>
+      {scrollable ? (
+        <StyledScrollView 
+          className="flex-1" 
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ flexGrow: 1 }}
+        >
+          {content}
+        </StyledScrollView>
+      ) : (
+        content
+      )}
+    </StyledSafeAreaView>
   );
 };
 

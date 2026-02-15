@@ -1,9 +1,8 @@
 {
   "name": "Cyra - PCOS & Cycle Wellness",
-  "description": "A calm, modern PCOS management companion focused on cycle rhythm and hormonal harmony.",
+  "description": "A calm, modern PCOS management companion built in React Native.",
   "requestFramePermissions": [
     "camera",
-    "microphone",
-    "geolocation"
+    "microphone"
   ]
 }

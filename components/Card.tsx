@@ -1,22 +1,37 @@
 
 import React from 'react';
+import { View, Pressable } from 'react-native';
+import { styled } from 'nativewind';
+
+const StyledView = styled(View);
+const StyledPressable = styled(Pressable);
 
 interface CardProps {
   children: React.ReactNode;
   className?: string;
+  onPress?: () => void;
   onClick?: () => void;
-  style?: React.CSSProperties;
+  style?: any;
 }
 
-const Card: React.FC<CardProps> = ({ children, className = '', onClick, style }) => {
+const Card: React.FC<CardProps> = ({ children, className = "", onPress, onClick, style }) => {
+  const finalOnPress = onPress || onClick;
+  const Container = finalOnPress ? StyledPressable : StyledView;
+  
   return (
-    <div 
-      onClick={onClick}
-      style={style}
-      className={`bg-white rounded-[24px] p-6 shadow-[0_10px_40px_rgba(0,0,0,0.02)] border border-[#F0EFEA] transition-all active:scale-[0.99] ${className}`}
+    <Container 
+      onPress={finalOnPress}
+      className={`bg-white rounded-[32px] p-6 border border-[#F0EFEA] ${className}`}
+      style={[{
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.02,
+        shadowRadius: 20,
+        elevation: 2,
+      }, style]}
     >
       {children}
-    </div>
+    </Container>
   );
 };
 

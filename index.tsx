@@ -1,16 +1,12 @@
 
-import React from 'react';
-import ReactDOM from 'react-dom/client';
+import { AppRegistry, Platform } from 'react-native';
 import App from './App';
 
-const rootElement = document.getElementById('root');
-if (!rootElement) {
-  throw new Error("Could not find root element to mount to");
-}
+AppRegistry.registerComponent('main', () => App);
 
-const root = ReactDOM.createRoot(rootElement);
-root.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
-);
+if (Platform.OS === 'web') {
+  AppRegistry.runApplication('main', {
+    initialProps: {},
+    rootTag: document.getElementById('root'),
+  });
+}
