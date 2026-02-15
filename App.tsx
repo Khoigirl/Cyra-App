@@ -62,9 +62,7 @@ const AppContent: React.FC = () => {
 
   const [showSupplements, setShowSupplements] = useState(false);
   const [suppStack, setSuppStack] = useState<SupplementStack>(SupplementStack.Main);
-  const [activeSupId, setActiveSupId] = useState<string | undefined>();
-  const [activeRemId, setActiveRemId] = useState<string | undefined>();
-
+  
   const [showLabs, setShowLabs] = useState(false);
   const [labStack, setLabStack] = useState<LabStack>(LabStack.Main);
   const [activeMarkerId, setActiveMarkerId] = useState<string | undefined>();
@@ -72,12 +70,7 @@ const AppContent: React.FC = () => {
 
   const [learnStack, setLearnStack] = useState<LearnStack>(LearnStack.Main);
   const [activeLearnItemId, setActiveLearnItemId] = useState<string | null>(null);
-  const [activePillarId, setActivePillarId] = useState<string | undefined>();
 
-  const [profileStack, setProfileStack] = useState<ProfileStack>(ProfileStack.Main);
-  const [activeLegalType, setActiveLegalType] = useState<LegalType>('privacy');
-
-  // Logic to only show Step numbers for actual questionnaire screens
   const questionnaireSteps = [
     OnboardingScreen.Goals,
     OnboardingScreen.Symptoms,
@@ -134,22 +127,69 @@ const AppContent: React.FC = () => {
     }
   };
 
+  const renderLabs = () => {
+    switch (labStack) {
+      case LabStack.Main:
+        return <LabsScreen 
+          onBack={() => setShowLabs(false)} 
+          onAddResult={() => setLabStack(LabStack.AddResult)} 
+          onDetail={(id) => { setActiveMarkerId(id); setLabStack(LabStack.Detail); }} 
+          onAddCustom={() => setLabStack(LabStack.AddCustom)} 
+          onScan={() => setLabStack(LabStack.ScanStart)} 
+        />;
+      case LabStack.AddResult:
+        return <AddLabResultScreen onBack={() => setLabStack(LabStack.Main)} />;
+      case LabStack.Detail:
+        return <LabMarkerDetailScreen markerId={activeMarkerId!} onBack={() => setLabStack(LabStack.Main)} onAddResult={() => setLabStack(LabStack.AddResult)} />;
+      case LabStack.AddCustom:
+        return <AddCustomMarkerScreen onBack={() => setLabStack(LabStack.Main)} />;
+      case LabStack.ScanStart:
+        return <LabScanStartScreen 
+          onBack={() => setLabStack(LabStack.Main)} 
+          onTextExtracted={(text) => {
+            const candidates = parseReportText(text);
+            setScanCandidates(candidates);
+            setLabStack(LabStack.ScanReview);
+          }} 
+        />;
+      case LabStack.ScanReview:
+        return <LabScanReviewScreen 
+          candidates={scanCandidates} 
+          onBack={() => setLabStack(LabStack.ScanStart)} 
+          onConfirm={(confirmed) => {
+            setScanCandidates(confirmed);
+            setLabStack(LabStack.ScanSummary);
+          }} 
+        />;
+      case LabStack.ScanSummary:
+        return <LabScanSummaryScreen 
+          confirmedResults={scanCandidates} 
+          onBack={() => setLabStack(LabStack.ScanReview)} 
+          onFinish={() => {
+            setLabStack(LabStack.Main);
+          }} 
+        />;
+      default:
+        return <LabsScreen onBack={() => setShowLabs(false)} onAddResult={() => {}} onDetail={() => {}} onAddCustom={() => {}} onScan={() => {}} />;
+    }
+  };
+
   const renderMainApp = () => {
     if (showPaywall) return <PaywallScreen source={paywallSource} onBack={() => setShowPaywall(false)} />;
     if (showSupplements) return <SupplementsScreen onBack={() => setShowSupplements(false)} onManage={() => setSuppStack(SupplementStack.Library)} onReminders={() => setSuppStack(SupplementStack.Reminders)} />;
-    if (showLabs) return <LabsScreen onBack={() => setShowLabs(false)} onAddResult={() => setLabStack(LabStack.AddResult)} onDetail={(id) => { setActiveMarkerId(id); setLabStack(LabStack.Detail); }} onAddCustom={() => setLabStack(LabStack.AddCustom)} onScan={() => setLabStack(LabStack.ScanStart)} />;
+    if (showLabs) return renderLabs();
 
     switch (activeTab) {
       case Tab.Today: return <Today onGoToSupplements={() => setShowSupplements(true)} onOpenLearnItem={(id) => { setActiveLearnItemId(id); setActiveTab(Tab.Learn); setLearnStack(LearnStack.Details); }} onContinueProgram={(id) => { setActiveLearnItemId(id); setActiveTab(Tab.Learn); setLearnStack(LearnStack.ProgramDay); }} onOpenPaywall={(s) => { setPaywallSource(s); setShowPaywall(true); }} />;
       case Tab.Recipes: return <Recipes onOpenPaywall={(s) => { setPaywallSource(s); setShowPaywall(true); }} />;
       case Tab.Track: return <Track onGoToAuth={() => setOnboardingStep(OnboardingScreen.AuthGate)} onGoToSupplements={() => setShowSupplements(true)} onOpenPaywall={(s) => { setPaywallSource(s); setShowPaywall(true); }} />; 
-      case Tab.Learn: return <LearnScreen onSelectItem={(id) => { setActiveLearnItemId(id); setLearnStack(LearnStack.Details); }} onSelectPillar={(pid) => { setActivePillarId(pid); setLearnStack(LearnStack.Library); }} onViewAllLibrary={() => setLearnStack(LearnStack.Library)} />;
-      case Tab.Profile: return <Profile onGoToLabs={() => setShowLabs(true)} onViewSaved={() => { setActiveTab(Tab.Learn); setLearnStack(LearnStack.Library); }} onViewLearningProgress={() => { setActiveTab(Tab.Learn); setLearnStack(LearnStack.Progress); }} onOpenPaywall={(s) => { setPaywallSource(s); setShowPaywall(true); }} onOpenLegal={(type) => { setActiveLegalType(type); setProfileStack(ProfileStack.Legal); }} />;
+      case Tab.Learn: return <LearnScreen onSelectItem={(id) => { setActiveLearnItemId(id); setLearnStack(LearnStack.Details); }} onSelectPillar={() => {}} onViewAllLibrary={() => {}} />;
+      case Tab.Profile: return <Profile onGoToLabs={() => { setShowLabs(true); setLabStack(LabStack.Main); }} onOpenPaywall={(s) => { setPaywallSource(s); setShowPaywall(true); }} />;
       default: return <Today onGoToSupplements={() => setShowSupplements(true)} onOpenPaywall={(s) => { setPaywallSource(s); setShowPaywall(true); }} />;
     }
   };
 
-  if (!isOnboarded) return <div className="flex flex-col h-screen max-w-md mx-auto bg-[#F7F4F1] relative overflow-hidden border-x border-gray-100 shadow-xl animate-in fade-in duration-700">{renderOnboarding()}</div>;
+  if (!isOnboarded) return <div className="flex flex-col h-screen max-w-md mx-auto bg-[#F7F4F1] relative overflow-hidden border-x border-gray-100 shadow-xl">{renderOnboarding()}</div>;
 
   return <Layout activeTab={activeTab} setActiveTab={setActiveTab}><div className="animate-in fade-in slide-in-from-bottom-4 duration-500">{renderMainApp()}</div></Layout>;
 };
