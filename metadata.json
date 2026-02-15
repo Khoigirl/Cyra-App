@@ -1,0 +1,9 @@
+{
+  "name": "Cyra - PCOS & Cycle Wellness",
+  "description": "A calm, modern PCOS management companion focused on cycle rhythm and hormonal harmony.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone",
+    "geolocation"
+  ]
+}

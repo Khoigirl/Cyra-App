@@ -1,0 +1,31 @@
+
+{
+  "expo": {
+    "name": "Cyra",
+    "slug": "cyra-wellness",
+    "version": "1.2.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#F7F4F1"
+    },
+    "assetBundlePatterns": [
+      "**/*",
+      "web-build/**/*"
+    ],
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.cyra.wellness",
+      "config": {
+        "usesNonExemptEncryption": false
+      },
+      "infoPlist": {
+        "NSCameraUsageDescription": "Cyra needs access to your camera to scan and digitize lab reports for your hormone intelligence dashboard.",
+        "NSPhotoLibraryUsageDescription": "Cyra allows you to upload existing lab reports from your library for analysis."
+      }
+    }
+  }
+}
