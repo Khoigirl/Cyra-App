@@ -1,5 +1,8 @@
 
 import React, { useMemo } from 'react';
+import { View, Text, Pressable } from 'react-native';
+import { styled } from 'nativewind';
+import { Lock } from 'lucide-react-native';
 import { CALENDAR_LOGS } from '../data/mock';
 import { useWellness } from '../context/WellnessContext';
 import { 
@@ -8,6 +11,10 @@ import {
   getPredictedNextPeriodWindow, 
   getFertileWindow 
 } from '../utils/cyclePrediction';
+
+const StyledView = styled(View);
+const StyledText = styled(Text);
+const StyledPressable = styled(Pressable);
 
 export type CalendarFilter = 'All' | 'Period' | 'Symptoms' | 'Supplements' | 'Activity' | 'Meals';
 
@@ -35,16 +42,13 @@ const CalendarGrid: React.FC<CalendarGridProps> = ({
 }) => {
   const { isDateLocked, lastPeriodStart, cycleLength } = useWellness();
   
-  const daysInMonth = (year: number, month: number) => new Date(year, month + 1, 0).getDate();
-  const firstDayOfMonth = (year: number, month: number) => new Date(year, month, 1).getDay();
-
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
-  const numDays = daysInMonth(year, month);
-  const startDay = firstDayOfMonth(year, month);
+  const numDays = new Date(year, month + 1, 0).getDate();
+  const startDay = new Date(year, month, 1).getDay();
 
-  const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-  const todayStr = '2024-02-14'; // Feb 14
+  const weekDays = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+  const todayStr = new Date().toISOString().split('T')[0];
 
   const predictions = useMemo(() => {
     if (!lastPeriodStart) return null;
@@ -56,7 +60,7 @@ const CalendarGrid: React.FC<CalendarGridProps> = ({
   const renderCells = () => {
     const cells = [];
     for (let i = 0; i < startDay; i++) {
-      cells.push(<div key={`empty-${i}`} className="h-16" />);
+      cells.push(<StyledView key={`empty-${i}`} className="flex-1 h-16" />);
     }
 
     for (let d = 1; d <= numDays; d++) {
@@ -68,80 +72,54 @@ const CalendarGrid: React.FC<CalendarGridProps> = ({
       
       const cycleDay = getCycleDayForDate(dateStr, lastPeriodStart, cycleLength);
       const phase = cycleDay !== -1 ? getPhaseFromCycleDay(cycleDay, cycleLength) : null;
-
-      const inPredictedPeriod = predictions?.nextPeriod?.dates.includes(dateStr);
-      const inFertileWindow = showFertileWindow && predictions?.fertile?.dates.includes(dateStr);
-
-      const hasPeriodLog = mockLogs.period;
-      const hasAnyDailyLog = mockLogs.meals || mockLogs.symptoms || mockLogs.workout;
-      
       const bgTint = phase ? PHASE_COLORS[phase] : 'transparent';
 
-      const getBorderColor = () => {
-        if (isSelected) return '#8FAF9D';
-        if (hasPeriodLog) return '#E26D6D';
-        if (inPredictedPeriod) return 'rgba(216, 156, 164, 0.35)';
-        return 'transparent';
-      };
-
       cells.push(
-        <button
+        <StyledPressable
           key={d}
-          onClick={() => onSelectDate(dateStr)}
+          onPress={() => onSelectDate(dateStr)}
           style={{ 
             backgroundColor: isSelected ? 'white' : bgTint,
-            borderColor: getBorderColor(),
-            borderStyle: (!isSelected && !hasPeriodLog && inPredictedPeriod) ? 'dashed' : 'solid',
+            borderColor: isSelected ? '#8FAF9D' : 'transparent',
+            borderWidth: isSelected ? 2 : 0,
           }}
-          className={`h-16 flex flex-col items-center justify-start pt-2 rounded-[18px] transition-all active:scale-95 relative ${
-            isSelected 
-              ? 'shadow-[0_12px_28px_-5px_rgba(0,0,0,0.1),0_8px_12px_-6px_rgba(0,0,0,0.05)] z-20 scale-105 border-[2.5px]' 
-              : 'border-2'
-          } ${locked ? 'opacity-60' : ''}`}
+          className={`flex-1 h-16 items-center pt-2 rounded-xl relative ${locked ? 'opacity-40' : ''}`}
         >
-          <span className={`text-[13px] font-bold mb-1 z-10 transition-colors ${
-            isSelected 
-              ? 'text-[#8FAF9D]' 
-              : (isToday ? 'text-[#1F2937] underline underline-offset-4 decoration-[#8FAF9D]' : 'text-[#1F2937]')
-          }`}>
+          <StyledText className={`text-[13px] font-bold ${isSelected ? 'text-[#8FAF9D]' : 'text-[#1F2937]'}`}>
             {d}
-          </span>
+          </StyledText>
           
-          <div className="flex flex-wrap justify-center gap-0.5 max-w-[28px] z-10">
-            {hasPeriodLog && <div className="w-1.5 h-1.5 rounded-full bg-[#E26D6D]" />}
-            {hasAnyDailyLog && (filter === 'All' || filter === 'Meals' || filter === 'Symptoms') && !locked && (
-              <div className="w-1.5 h-1.5 rounded-full bg-[#8FAF9D]" />
+          <StyledView className="flex-row flex-wrap justify-center gap-0.5 mt-1">
+            {mockLogs.period && <StyledView className="w-1 h-1 rounded-full bg-[#E26D6D]" />}
+            {(mockLogs.meals || mockLogs.symptoms) && !locked && (
+              <StyledView className="w-1 h-1 rounded-full bg-[#8FAF9D]" />
             )}
-          </div>
+          </StyledView>
 
-          {locked && !isSelected && (
-            <div className="absolute bottom-1.5 text-gray-300">
-               <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" /></svg>
-            </div>
+          {locked && (
+            <StyledView className="absolute bottom-1">
+              <Lock size={8} color="#9CA3AF" />
+            </StyledView>
           )}
-
-          {inFertileWindow && !isSelected && !locked && (
-            <div className="absolute bottom-1 w-1 h-1 rounded-full bg-blue-300/60" />
-          )}
-        </button>
+        </StyledPressable>
       );
     }
     return cells;
   };
 
   return (
-    <div className="bg-white/40 rounded-[24px] p-4 backdrop-blur-sm border border-white/60">
-      <div className="grid grid-cols-7 mb-4">
-        {weekDays.map(wd => (
-          <div key={wd} className="text-center">
-            <span className="text-[10px] font-bold text-[#6B7280] uppercase tracking-widest">{wd[0]}</span>
-          </div>
+    <StyledView className="bg-white/40 rounded-[24px] p-4 border border-white/60">
+      <StyledView className="flex-row mb-4">
+        {weekDays.map((wd, i) => (
+          <StyledView key={i} className="flex-1 items-center">
+            <StyledText className="text-[10px] font-bold text-[#6B7280] uppercase">{wd}</StyledText>
+          </StyledView>
         ))}
-      </div>
-      <div className="grid grid-cols-7 gap-1">
+      </StyledView>
+      <StyledView className="flex-row flex-wrap">
         {renderCells()}
-      </div>
-    </div>
+      </StyledView>
+    </StyledView>
   );
 };
 

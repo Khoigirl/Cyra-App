@@ -1,5 +1,11 @@
 
 import React from 'react';
+import { View, Text, Pressable } from 'react-native';
+import { styled } from 'nativewind';
+
+const StyledView = styled(View);
+const StyledText = styled(Text);
+const StyledPressable = styled(Pressable);
 
 interface SegmentedControlProps {
   options: string[];
@@ -10,27 +16,29 @@ interface SegmentedControlProps {
 
 const SegmentedControl: React.FC<SegmentedControlProps> = ({ options, selectedOption, onSelect, label }) => {
   return (
-    <div className="flex flex-col gap-3">
-      {label && <p className="text-[11px] font-bold text-[#6B7280] uppercase tracking-widest">{label}</p>}
-      <div className="flex flex-wrap gap-2 p-1.5 bg-white border border-[#E5E7EB] rounded-[18px]">
+    <StyledView className="flex flex-col gap-3">
+      {label && <StyledText className="text-[11px] font-bold text-[#6B7280] uppercase tracking-widest px-1">{label}</StyledText>}
+      <StyledView className="flex-row flex-wrap gap-2 p-1.5 bg-white border border-[#E5E7EB] rounded-[18px]">
         {options.map((option) => {
           const isSelected = selectedOption === option;
           return (
-            <button
+            <StyledPressable
               key={option}
-              onClick={() => onSelect(option)}
-              className={`flex-1 min-w-[60px] py-2.5 rounded-[14px] text-sm font-medium transition-all ${
+              onPress={() => onSelect(option)}
+              className={`flex-1 min-w-[60px] py-2.5 rounded-[14px] items-center transition-all ${
                 isSelected 
-                ? "bg-[#8FAF9D] text-white shadow-sm" 
-                : "text-[#6B7280] hover:bg-gray-50"
+                ? "bg-[#8FAF9D] shadow-sm" 
+                : "active:bg-gray-50"
               }`}
             >
-              {option}
-            </button>
+              <StyledText className={`text-sm font-bold ${isSelected ? "text-white" : "text-[#6B7280]"}`}>
+                {option}
+              </StyledText>
+            </StyledPressable>
           );
         })}
-      </div>
-    </div>
+      </StyledView>
+    </StyledView>
   );
 };
 

@@ -1,6 +1,13 @@
 
 import React from 'react';
+import { View, Text, Pressable } from 'react-native';
+import { styled } from 'nativewind';
+import { Plus } from 'lucide-react-native';
 import Card from './Card';
+
+const StyledView = styled(View);
+const StyledText = styled(Text);
+const StyledPressable = styled(Pressable);
 
 interface SectionCardProps {
   title: string;
@@ -20,33 +27,31 @@ const SectionCard: React.FC<SectionCardProps> = ({
   isEmpty = false 
 }) => {
   return (
-    <Card className="mb-4 border-none shadow-sm overflow-hidden">
-      <div className="flex justify-between items-center mb-4">
-        <div className="flex items-center gap-2">
-          <span className="text-xl">{icon}</span>
-          <h3 className="text-sm font-bold text-[#1F2937] uppercase tracking-widest">{title}</h3>
-        </div>
-        <button 
-          onClick={onAdd}
-          className="w-8 h-8 rounded-full bg-[#8FAF9D]/10 flex items-center justify-center text-[#8FAF9D] transition-transform active:scale-90"
+    <Card className="mb-4 p-5">
+      <StyledView className="flex-row justify-between items-center mb-4">
+        <StyledView className="flex-row items-center gap-2">
+          <StyledText className="text-xl">{icon}</StyledText>
+          <StyledText className="text-sm font-bold text-[#1F2937] uppercase tracking-widest">{title}</StyledText>
+        </StyledView>
+        <StyledPressable 
+          onPress={onAdd}
+          className="w-8 h-8 rounded-full bg-[#8FAF9D]/10 items-center justify-center active:scale-90 transition-transform"
         >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-          </svg>
-        </button>
-      </div>
+          <Plus size={18} color="#8FAF9D" strokeWidth={3} />
+        </StyledPressable>
+      </StyledView>
 
       {isEmpty ? (
-        <div className="py-4 flex flex-col items-center justify-center text-center">
-          <div className="w-12 h-12 rounded-full bg-[#F7F4F1] flex items-center justify-center mb-2 opacity-50">
-            <span className="text-xl">⚪</span>
-          </div>
-          <p className="text-xs text-[#6B7280] font-medium italic">{emptyStateText}</p>
-        </div>
+        <StyledView className="py-4 items-center justify-center">
+          <StyledView className="w-12 h-12 rounded-full bg-[#F7F4F1] items-center justify-center mb-2 opacity-50">
+            <StyledText className="text-xl">⚪</StyledText>
+          </StyledView>
+          <StyledText className="text-xs text-[#6B7280] font-medium italic text-center px-4">{emptyStateText}</StyledText>
+        </StyledView>
       ) : (
-        <div className="animate-in fade-in duration-500">
+        <StyledView>
           {children}
-        </div>
+        </StyledView>
       )}
     </Card>
   );

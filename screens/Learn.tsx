@@ -1,46 +1,58 @@
 
 import React from 'react';
+import { View, Text, TextInput, ScrollView, Pressable } from 'react-native';
+import { styled } from 'nativewind';
+import { Search, ChevronRight, Play } from 'lucide-react-native';
 import Screen from '../components/Screen';
 import Card from '../components/Card';
 import { ARTICLES } from '../data/mock';
 
+const StyledView = styled(View);
+const StyledText = styled(Text);
+const StyledTextInput = styled(TextInput);
+const StyledPressable = styled(Pressable);
+
 const Learn: React.FC = () => {
   return (
     <Screen title="Learn">
-      <div className="bg-white rounded-[14px] p-1 px-4 mb-8 flex items-center gap-3 border border-[#E5E7EB]">
-        <svg className="w-5 h-5 text-[#6B7280]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-        <input className="bg-transparent py-3 flex-1 text-sm outline-none" placeholder="Search hormone health..." />
-      </div>
+      <StyledView className="bg-white rounded-[18px] px-4 mb-8 flex-row items-center gap-3 border border-[#E5E7EB]">
+        <Search size={20} color="#6B7280" />
+        <StyledTextInput 
+          className="flex-1 py-4 text-sm text-[#1F2937]" 
+          placeholder="Search hormone health..." 
+          placeholderTextColor="#9CA3AF"
+        />
+      </StyledView>
 
-      <div className="space-y-4">
+      <StyledView className="gap-y-4">
         {ARTICLES.map(art => (
-          <Card key={art.id} className="flex gap-4 p-4 items-center group cursor-pointer">
-            <div className="w-16 h-16 rounded-[14px] bg-[#DDEEF4] flex items-center justify-center text-3xl">
-              {art.icon}
-            </div>
-            <div className="flex-1">
-              <h4 className="font-bold text-[#1F2937] group-hover:text-[#8FAF9D] transition-colors">{art.title}</h4>
-              <p className="text-[10px] text-[#6B7280] font-bold uppercase tracking-widest mt-1">{art.readTime} read</p>
-            </div>
-            <svg className="w-5 h-5 text-[#E5E7EB]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" /></svg>
+          <Card key={art.id} className="flex-row gap-4 p-4 items-center active:bg-gray-50">
+            <StyledView className="w-16 h-16 rounded-[14px] bg-[#DDEEF4] items-center justify-center">
+              <StyledText className="text-3xl">{art.icon}</StyledText>
+            </StyledView>
+            <StyledView className="flex-1">
+              <StyledText className="font-bold text-[#1F2937] text-base leading-tight">{art.title}</StyledText>
+              <StyledText className="text-[10px] text-[#6B7280] font-bold uppercase tracking-widest mt-1">{art.readTime} read</StyledText>
+            </StyledView>
+            <ChevronRight size={20} color="#E5E7EB" />
           </Card>
         ))}
-      </div>
+      </StyledView>
 
-      <div className="mt-8">
-        <h3 className="text-lg font-bold text-[#1F2937] mb-4">Masterclasses</h3>
+      <StyledView className="mt-10 mb-20">
+        <StyledText className="text-lg font-bold text-[#1F2937] mb-4 px-1">Masterclasses</StyledText>
         <Card className="bg-[#FADADD] border-none p-6">
-          <div className="flex justify-between items-start">
-            <div>
-              <h4 className="font-bold text-[#1F2937] text-xl">The Cortisol Fix</h4>
-              <p className="text-sm text-[#1F2937]/70 mt-2">Reduce stress-driven PCOS symptoms.</p>
-            </div>
-            <div className="bg-white p-2 rounded-full">
-              <svg className="w-6 h-6 text-[#1F2937]" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" /></svg>
-            </div>
-          </div>
+          <StyledView className="flex-row justify-between items-start">
+            <StyledView className="flex-1 pr-4">
+              <StyledText className="font-bold text-[#1F2937] text-xl">The Cortisol Fix</StyledText>
+              <StyledText className="text-sm text-[#1F2937]/70 mt-2 font-medium">Reduce stress-driven PCOS symptoms.</StyledText>
+            </StyledView>
+            <StyledView className="bg-white p-3 rounded-full shadow-sm">
+              <Play size={24} fill="#1F2937" color="#1F2937" />
+            </StyledView>
+          </StyledView>
         </Card>
-      </div>
+      </StyledView>
     </Screen>
   );
 };
