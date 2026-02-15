@@ -1,15 +1,13 @@
 
 import React from 'react';
+import { View, Text, Pressable } from 'react-native';
+import { styled } from 'nativewind';
 import OnboardingLayout from '../../components/onboarding/OnboardingLayout';
-import Chip from '../../components/Chip';
 import { useOnboarding } from '../../context/OnboardingContext';
 
-interface GoalsScreenProps {
-  onNext: () => void;
-  onBack: () => void;
-  step: number;
-  totalSteps: number;
-}
+const StyledView = styled(View);
+const StyledText = styled(Text);
+const StyledPressable = styled(Pressable);
 
 const GOALS = [
   "Regular cycles",
@@ -20,7 +18,7 @@ const GOALS = [
   "Fertility support"
 ];
 
-const GoalsScreen: React.FC<GoalsScreenProps> = ({ onNext, onBack, step, totalSteps }) => {
+const GoalsScreen: React.FC<any> = ({ onNext, onBack, step, totalSteps }) => {
   const { answers, updateAnswers } = useOnboarding();
 
   const toggleGoal = (goal: string) => {
@@ -42,16 +40,24 @@ const GoalsScreen: React.FC<GoalsScreenProps> = ({ onNext, onBack, step, totalSt
       totalSteps={totalSteps}
       isNextDisabled={answers.goals.length === 0}
     >
-      <div className="flex flex-wrap gap-3">
-        {GOALS.map((goal) => (
-          <Chip 
-            key={goal}
-            label={goal}
-            selected={answers.goals.includes(goal)}
-            onPress={() => toggleGoal(goal)}
-          />
-        ))}
-      </div>
+      <StyledView className="flex-row flex-wrap gap-3">
+        {GOALS.map((goal) => {
+          const isSelected = answers.goals.includes(goal);
+          return (
+            <StyledPressable 
+              key={goal}
+              onPress={() => toggleGoal(goal)}
+              className={`px-6 py-3 rounded-full border transition-all ${
+                isSelected ? "bg-[#8FAF9D] border-[#8FAF9D]" : "bg-white border-[#E5E7EB]"
+              }`}
+            >
+              <StyledText className={`text-sm font-bold ${isSelected ? "text-white" : "text-[#6B7280]"}`}>
+                {goal}
+              </StyledText>
+            </StyledPressable>
+          );
+        })}
+      </StyledView>
     </OnboardingLayout>
   );
 };
