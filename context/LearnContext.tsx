@@ -1,5 +1,6 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface ProgramProgress {
   programId: string;
@@ -21,7 +22,7 @@ interface LearnContextType {
   isSaved: (id: string) => boolean;
   isRead: (id: string) => boolean;
   getProgramProgress: (id: string) => ProgramProgress | undefined;
-  getLearningStreak: () => number; // Days active this week
+  getLearningStreak: () => number; 
 }
 
 const LearnContext = createContext<LearnContextType | undefined>(undefined);
@@ -32,26 +33,36 @@ export const LearnProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const [activeProgram, setActiveProgram] = useState<ProgramProgress | null>(null);
   const [programHistory, setProgramHistory] = useState<Record<string, ProgramProgress>>({});
 
-  // Hydrate from Storage
   useEffect(() => {
-    const saved = localStorage.getItem('cyra_learn_store_v2');
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      setSavedItemIds(parsed.savedItemIds || []);
-      setReadItemIds(parsed.readItemIds || []);
-      setActiveProgram(parsed.activeProgram || null);
-      setProgramHistory(parsed.programHistory || {});
-    }
+    const hydrate = async () => {
+      try {
+        const saved = await AsyncStorage.getItem('cyra_learn_store_v2');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          setSavedItemIds(parsed.savedItemIds || []);
+          setReadItemIds(parsed.readItemIds || []);
+          setActiveProgram(parsed.activeProgram || null);
+          setProgramHistory(parsed.programHistory || {});
+        }
+      } catch (e) {
+        console.error("Learn hydration error", e);
+      }
+    };
+    hydrate();
   }, []);
 
-  // Persist to Storage
   useEffect(() => {
-    localStorage.setItem('cyra_learn_store_v2', JSON.stringify({ 
-      savedItemIds, 
-      readItemIds, 
-      activeProgram, 
-      programHistory 
-    }));
+    const persist = async () => {
+      try {
+        await AsyncStorage.setItem('cyra_learn_store_v2', JSON.stringify({ 
+          savedItemIds, 
+          readItemIds, 
+          activeProgram, 
+          programHistory 
+        }));
+      } catch (e) {}
+    };
+    persist();
   }, [savedItemIds, readItemIds, activeProgram, programHistory]);
 
   const toggleSaved = (id: string) => {
@@ -98,8 +109,6 @@ export const LearnProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const getProgramProgress = (id: string) => programHistory[id];
 
   const getLearningStreak = () => {
-    // Basic mock logic: count unique days in program history and read items
-    // In a real app, readItemIds would be an object with timestamps
     return Math.min(readItemIds.length + (activeProgram?.completedDays.length || 0), 7);
   };
 

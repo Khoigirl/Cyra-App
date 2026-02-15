@@ -1,5 +1,6 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LabMarkerDefinition, LabResult, LabMarkerId } from '../labs/types';
 import { DEFAULT_MARKERS } from '../labs/defaultMarkers';
 
@@ -17,31 +18,35 @@ interface LabContextType {
 const LabContext = createContext<LabContextType | undefined>(undefined);
 
 export const LabProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [markers, setMarkers] = useState<LabMarkerDefinition[]>([]);
+  const [markers, setMarkers] = useState<LabMarkerDefinition[]>(DEFAULT_MARKERS);
   const [results, setResults] = useState<LabResult[]>([]);
 
   useEffect(() => {
-    const savedMarkers = localStorage.getItem('cyra_labs_markers');
-    const savedResults = localStorage.getItem('cyra_labs_results');
+    const hydrate = async () => {
+      try {
+        const savedMarkers = await AsyncStorage.getItem('cyra_labs_markers');
+        const savedResults = await AsyncStorage.getItem('cyra_labs_results');
 
-    if (savedMarkers) {
-      setMarkers(JSON.parse(savedMarkers));
-    } else {
-      setMarkers(DEFAULT_MARKERS);
-    }
-
-    if (savedResults) {
-      setResults(JSON.parse(savedResults));
-    }
+        if (savedMarkers) setMarkers(JSON.parse(savedMarkers));
+        if (savedResults) setResults(JSON.parse(savedResults));
+      } catch (e) {
+        console.error("Labs hydration error", e);
+      }
+    };
+    hydrate();
   }, []);
 
   useEffect(() => {
-    if (markers.length > 0) localStorage.setItem('cyra_labs_markers', JSON.stringify(markers));
-  }, [markers]);
-
-  useEffect(() => {
-    localStorage.setItem('cyra_labs_results', JSON.stringify(results));
-  }, [results]);
+    const persist = async () => {
+      try {
+        if (markers.length > 0) {
+          await AsyncStorage.setItem('cyra_labs_markers', JSON.stringify(markers));
+        }
+        await AsyncStorage.setItem('cyra_labs_results', JSON.stringify(results));
+      } catch (e) {}
+    };
+    persist();
+  }, [markers, results]);
 
   const addLabResult = (resultData: Omit<LabResult, 'id' | 'createdAt' | 'updatedAt'>) => {
     const newResult: LabResult = {
